@@ -182,7 +182,7 @@ java-postgresql-properties-connection/
 ---
 ## 3. PROPERTIES FILES 🗃️
 Un archivo de propiedades (o de configuración: **properties**) es un archivo de texto simple que almacena datos en un 
-formato de clave-valor. Su uso es una práctica recomendada en el desarrollo de software por varias razones clave:
+formato de **clave-valor**. Su uso es una práctica recomendada en el desarrollo de software por varias razones clave:
 
 ### Beneficios Clave ✅
 - **Seguridad y Mantenimiento**: Permite externalizar la configuración del código fuente. Los datos sensibles como las 
@@ -191,13 +191,9 @@ de recompilar el código.
 - **Portabilidad**: Al usar `ClassLoader` para leer el archivo desde el `classpath` del proyecto, la aplicación puede 
 ejecutarse en diferentes entornos sin modificar las rutas del archivo.
 
-Flexibilidad: Facilita la adaptación de la aplicación a distintos entornos (desarrollo, pruebas, producción) simplemente modificando las propiedades del archivo.
-- **Encapsulación de la Lógica de Negocio**: Los procedimientos almacenados permiten centralizar la lógica de negocio en 
-la base de datos en lugar de dispersarla en el código de la aplicación. Esto asegura que la lógica se aplique de manera 
-consistente, sin importar si la llamada proviene de la interfaz de usuario, un script de backend o cualquier otra fuente. 
-Si una regla de negocio cambia, solo necesitas actualizar el procedimiento almacenado en un solo lugar.
-- **Flexibilidad**: Facilita la adaptación de la aplicación a distintos entornos (desarrollo, pruebas, producción) 
-simplemente modificando las propiedades del archivo.
+- **Flexibilidad**: Facilita la adaptación de la aplicación a distintos entornos (desarrollo, pruebas, producción) simplemente modificando las propiedades del archivo.
+
+### Flujo de la Aplicación para la Conexión a la Base de Datos 📊
 
 ```mermaid
 graph TD
@@ -231,43 +227,29 @@ end
     Conexion -- "Retorna la conexión" --> TestConexion
     TestConexion -- "Muestra el resultado en un JOptionPane" --> Usuario[(Usuario)]
 ```
+En este proyecto, la clase `Configuration` lee el archivo `conexionBD.properties`. La clase `Conexion` utiliza estos datos 
+para establecer la conexión a la base de datos. Este enfoque mantiene la lógica de conexión y la configuración separadas, 
+lo cual es un ejemplo práctico del patrón de separación de responsabilidades.
 
-En este proyecto, los métodos `listarPersonas()` y `insertarPersona()` en la clase `GestorPersonas` no contienen la lógica SQL 
-directamente. En su lugar, simplemente invocan los procedimientos almacenados de PostgreSQL. Esto mantiene tu código Java 
-limpio y enfocado en la lógica de la aplicación, mientras que la base de datos maneja eficientemente las operaciones de 
-datos. Es un ejemplo práctico del patrón de separación de responsabilidades en el desarrollo de software.
+### Resumen del Flujo:
+`TestConexion` ➡️ `Conexion` ➡️ `Configuration` ➡️ `conexionBD.properties` ➡️ `Conexion` ➡️ `PostgreSQL`
 
-La aplicación se comunica con la base de datos a través de los siguientes procedimientos almacenados en PostgreSQL. Debes crear estos procedimientos antes de ejecutar la aplicación.
-- Procedimiento para Listar Personas:
-  - Nombre: `listarpersonas()`
-  - Función: Retorna un resultado con todos los registros de la tabla `persona`.
-- Procedimiento para Insertar Personas:
-  - Nombre: `insertarPersonas(p_id, p_usuario, p_contrasena)`
-  - Función: Inserta una nueva fila en la tabla `persona` con los valores proporcionados.
+### Métodos y Clases Principales de la API de Java en el Proyecto.
 
-
-### Métodos Principales de Clases JDBC
-
-| Clase                 | Principales Métodos                    | Descripción                                                                                                 |
-|:----------------------|:---------------------------------------|:------------------------------------------------------------------------------------------------------------|
-| **Connection**        | `createStatement()`                    | Crea un objeto `Statement` para ejecutar consultas SQL estáticas.                                           |
-|                       | `prepareStatement(sql)`                | Crea un objeto `PreparedStatement` para ejecutar consultas SQL parametrizadas de forma segura.              |
-|                       | `prepareCall(sql)`                     | Crea un objeto `CallableStatement` para invocar procedimientos almacenados y funciones de la base de datos. |
-|                       | `commit()`                             | Guarda todos los cambios realizados en una transacción.                                                     |
-|                       | `rollback()`                           | Deshace todos los cambios realizados en una transacción, volviendo al estado anterior.                      |
-|                       | `close()`                              | Cierra la conexión con la base de datos, liberando recursos.                                                |
-| **Statement**         | `execute(sql)`                         | Ejecuta cualquier tipo de sentencia SQL, devolviendo `true` si es un `ResultSet`.                           |
-|                       | `executeQuery(sql)`                    | Ejecuta una consulta `SELECT` y devuelve los resultados en un objeto `ResultSet`.                           |
-|                       | `executeUpdate(sql)`                   | Ejecuta sentencias `INSERT`, `UPDATE` o `DELETE` y devuelve el número de filas afectadas.                   |
-|                       | `close()`                              | Cierra el `Statement`, liberando sus recursos.                                                              |
-| **PreparedStatement** | `setXXX(index, value)`                 | Establece el valor de un parámetro en una posición específica (ej. `setString(1, "valor")`).                |
-|                       | `execute()`                            | Ejecuta la sentencia SQL precompilada. Puede ser usada para cualquier tipo de operación.                    |
-| **CallableStatement** | `registerOutParameter(index, sqlType)` | Registra un parámetro de salida para recibir un valor del procedimiento.                                    |
-|                       | `execute()`                            | Ejecuta el procedimiento almacenado o la función.                                                           |
-|                       | `getXXX(index)`                        | Recupera el valor de un parámetro de salida registrado (ej. `getInt(1)`).                                   |
-| **ResultSet**         | `next()`                               | Mueve el cursor a la siguiente fila del conjunto de resultados. Devuelve `false` si no hay más filas.       |
-|                       | `getXXX(columnName/index)`             | Recupera el valor de la columna actual en el formato de datos especificado (ej. `getString("nombre")`).     |
-|                       | `close()`                              | Cierra el `ResultSet`, liberando la memoria.                                                                |
+| Clase                             | Principales Métodos                                               | Descripción                                                                                   |
+|:----------------------------------|:------------------------------------------------------------------|:----------------------------------------------------------------------------------------------|
+| **java.sql.Connection**           | `getConnection()`                                                 | Establece el canal de comunicación con la base de datos.                                      |
+| **java.util.Properties**          | `load(inputStream)`                                               | Carga datos del archivo de configuración.                                                     |
+|                                   | `getProperty(key)`                                                | Lee datos del archivo de configuración.                                                       |
+| **java.io.InputStream**           | `FileInputStream(path)`                                           | Lee el archivo de propiedades como un flujo de bytes                                          |
+| **java.sql.DriverManager**        | `getConnection(url, user, password)`                              | Un gestor de drivers que crea la conexión a la base de datos.                                 |
+| **javax.swing.JFrame**            | `setTitle(String)`                                                | Establece el título que aparecerá en la barra superior de la ventana de la aplicación.        |
+|                                   | `add(Component)`                                                  | Agrega un componente (como un `JPanel` o un `JButton`) a la ventana.                          |
+|                                   | `pack()`                                                          | Redimensiona la ventana para que se ajuste a los tamaños preferidos de todos sus componentes. |
+|                                   | `setVisible(boolean)`                                             | Hace que la ventana de la aplicación sea visible u oculta.                                    |
+| **javax.swing.JButton**           | `addActionListener(ActionListener)`                               | Representa el botón; su método principal maneja los clics.                                    |
+| **javax.swing.JOptionPane**       | `showMessageDialog(parentComponent, message, title, messageType)` | Muestra cuadros de diálogo al usuario                                                         |
+| **java.awt.event.ActionListener** | `actionPerformed(ActionEvent`                                     | Define la acción a ejecutar cuando ocurre un evento.                                          |
 
 
 ---
@@ -301,7 +283,6 @@ Me encanta escuchar tus ideas y responder tus preguntas. Siempre puedes [contact
 Si tienes preguntas o necesitas ayuda durante el proceso de contribución, no dudes en [contactarme](https://www.linkedin.com/in/saul-echeverri-duque/) o abrir un issue para obtener asistencia.
 
 ¡Espero trabajar contigo en este proyecto y agradecemos tu ayuda o sugerencias para mejorarlo!
-
 
 
 ## Autor ✒️
@@ -376,8 +357,6 @@ Si encuentras este proyecto útil y te gustaría expresar tu gratitud de alguna 
 ¡Gracias por ser parte de este viaje de aprendizaje y desarrollo!
 
 
-
----
 ## Créditos 📜
 
 Este proyecto fue desarrollado con ❤️ por [Saul Echeverri](https://github.com/saulolo) 😊.
@@ -392,14 +371,14 @@ Si tienes preguntas, comentarios o sugerencias, no dudes en ponerte en contacto 
 ### METADATOS DEL DOCUMENTO 📄
 
 
-| Campo           | Detalles                                                                  |
-| :-------------- |:--------------------------------------------------------------------------|
-| **Título** | GUÍA RAPIDA DEL PROYECTO: PROCEDIMIENTOS ALMACENADOS EN JAVA Y POSTGRESQL |
-| **Autor(es)** | Saul Echeverri                                                            |
-| **Versión** | 1.0.0                                                                     |
-| **Fecha de Creación** | 05 de Septiembe de 2025                                                   |
-| **Última Actualización** | 05 de Septiembe de 2025                                                   |
-| **Notas Adicionales**  | Documento base para referencia rápida de los Procedimientos Almacenados.  |
+| Campo                    | Detalles                                                                                     |
+|:-------------------------|:---------------------------------------------------------------------------------------------|
+| **Título**               | GUÍA RÁPIDA DEL PROYECTO: CONEXIÓN JDBC CON ARCHIVO PROPERTIES EN JAVA Y POSTGRESQL          |
+| **Autor(es)**            | Saul Echeverri                                                                               |
+| **Versión**              | 1.0.0                                                                                        |
+| **Fecha de Creación**    | 07 de Septiembe de 2025                                                                      |
+| **Última Actualización** | 07 de Septiembe de 2025                                                                      |
+| **Notas Adicionales**    | Documento base para referencia rápida de la conexión a una BD usando un archivo porperties.  |
 
 ---
 
