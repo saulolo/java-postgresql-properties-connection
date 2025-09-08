@@ -65,7 +65,7 @@ Antes de comenzar, asegúrate de tener los siguientes requisitos previos en tu s
 Para comenzar, clona este repositorio en tu máquina local usando Git:
 
 ```shell
-git clone https://github.com/saulolo/stored-procedures.git
+git clone https://github.com/saulolo/java-postgresql-properties-connection.git
 ```
 
 ## Despliegue 📦
@@ -91,21 +91,18 @@ jdbc:postgresql://localhost:5432/bd_person_la_tec_avanz
 ```shell
 mvn clean install
 ```
-5. **Ejecución**: Ejecutar la clase `Main.java` que lanza la ventana del **usuario**.
-
-6. **Ingresar**: Listar usuarios y luego ingresa los datos solicitados en el apartado del registro para ingresar un nuevo 
-usuario.
+5. **Ejecución**: Ejecutar la clase `Main.java` que lanza la ventana con la interfaz gráfica del boton de **conexión a la BD**.
 
 El proyecto se ejecutará en tu servidor local en http://localhost:8080.
 
 ### 🧩 Script SQL para la Base de Datos
 
 - Este proyecto incluye un archivo SQL que crea la base de datos y la tabla necesarias para el registro de usuarios.
+- Tambien incluye un archivo con queries de interes.
 
-📄 **Archivo incluido:**  
-`src/main/resources/db_sql/bd_person_la_tec_avanz.sql`
-- Tambien incluye un archivo con las funciones creadas para los procedimientos almacenados asi como queries de interes.
-  `src/main/resources/db_sql/queries.sql`
+📄 **Archivos incluido:**  
+- `src/main/resources/db_sql/bd_person_la_tec_avanz.sql`
+- `src/main/resources/db_sql/queries.sql`
 
 🔧 **¿Qué hace este script?**
 
@@ -146,25 +143,24 @@ El proyecto sigue una arquitectura Model-View-Controller (MVC) básica para orga
 lo que facilita el mantenimiento y la escalabilidad.
 
 ```ja
-storedProcedures/
+java-postgresql-properties-connection/
 ├── src/
 │   └── main/
 │       └── java/
 │           └── org.educatiom/
 │               ├── data/
-│               │   ├── Conexion.java
-│               │   └── GestorPersonas.java
-│               ├── models/
-│               │   └── Persona.java
+│               │   └──  Conexion.java
+│               ├── util/
+│               │   └── Configuration.java
 │               ├── view/
-│               │   ├── Procedures.java
-│               │   └── Procedures.form
+│               │   ├── TestConexion.java
+│               │   └── TestConexion.form
 │               └── Main.java
 └── resources/
-    └── db_sql
-        ├── bd_person_la_tec_avanz.sql
-        └── queries.sql
-        
+    ├── db_sql/
+    │    ├── bd_person_la_tec_avanz.sql
+    │    └── queries.sql
+    └── conexionBD.properties
 ```
 
 - `org.educatiom.main`: 
@@ -174,38 +170,67 @@ storedProcedures/
 -   `data:`
     -  `Conexion.java`: La capa de acceso a datos. Utiliza el patrón Singleton para asegurar una única instancia de 
     conexión a la base de datos.
-    - `GestorPersonas.java`: La capa de lógica de negocio. Contiene los métodos que interactúan con la base de datos a 
-    través de los procedimientos almacenados, como listar e insertar personas.
-- `org.educatiom.models`:
-    -  `Persona.java`: La clase modelo. Representa la entidad de datos "Persona" con sus atributos (ID, usuario y contraseña
+- `org.educatiom.util`:
+    -  `Configuration.java`: La clase de utilidad que lee los datos de conexión desde el archivo de propiedades de manera 
+  segura y portable.
 - `org.educatiom.view`:
-    -  `Procedures.java`: La capa de la vista. Contiene toda la lógica de la interfaz de usuario (GUI) construida con 
-    Java Swing. Es responsable de recibir la entrada del usuario y mostrar los resultados, delegando las operaciones de 
-    datos al `GestorPersonas`.
-
-    
+    -  `TestConexion.java`: La capa de la vista. Contiene la interfaz de usuario Java Swing y maneja los eventos del 
+  botón, mostrando el resultado de la conexión.
+- `resources`:
+    -  `conexionBD.properties`: Archivo de configuración que almacena la URL de la base de datos, el usuario y la contraseña.
 
 ---
-## 3. PROCEDIMIENTOS ALMACENADOS 🗃️
-Un procedimiento almacenado es un conjunto de sentencias SQL compiladas y almacenadas dentro de la base de datos. 
-Se invocan mediante una simple llamada desde la aplicación, en lugar de enviar las sentencias SQL completas. 
-En el contexto de este proyecto, esta técnica es fundamental por varias razones clave:
+## 3. PROPERTIES FILES 🗃️
+Un archivo de propiedades (o de configuración: **properties**) es un archivo de texto simple que almacena datos en un 
+formato de clave-valor. Su uso es una práctica recomendada en el desarrollo de software por varias razones clave:
 
 ### Beneficios Clave ✅
-- **Seguridad y Control de Acceso**: Los procedimientos almacenados limitan el acceso directo a las tablas de la base 
-de datos. En lugar de conceder permisos de `SELECT`, `INSERT` o `UPDATE` a las tablas, la aplicación solo necesita permisos 
-para ejecutar el procedimiento. Esto reduce el riesgo de inyección SQL y garantiza que las operaciones se realicen según 
-las reglas predefinidas en el procedimiento.
-- **Rendimiento Mejorado**: Al estar precompilados, los procedimientos almacenados no necesitan ser analizados y 
-optimizados en cada ejecución. Esto se traduce en un menor tiempo de procesamiento en el servidor de la base de datos y 
-un rendimiento más rápido, especialmente para operaciones repetitivas como **listar** o **insertar registros**.
+- **Seguridad y Mantenimiento**: Permite externalizar la configuración del código fuente. Los datos sensibles como las 
+credenciales de la base de datos no se codifican directamente en el programa. Esto facilita su actualización sin necesidad 
+de recompilar el código.
+- **Portabilidad**: Al usar `ClassLoader` para leer el archivo desde el `classpath` del proyecto, la aplicación puede 
+ejecutarse en diferentes entornos sin modificar las rutas del archivo.
+
+Flexibilidad: Facilita la adaptación de la aplicación a distintos entornos (desarrollo, pruebas, producción) simplemente modificando las propiedades del archivo.
 - **Encapsulación de la Lógica de Negocio**: Los procedimientos almacenados permiten centralizar la lógica de negocio en 
 la base de datos en lugar de dispersarla en el código de la aplicación. Esto asegura que la lógica se aplique de manera 
 consistente, sin importar si la llamada proviene de la interfaz de usuario, un script de backend o cualquier otra fuente. 
 Si una regla de negocio cambia, solo necesitas actualizar el procedimiento almacenado en un solo lugar.
-- **Reducción del Tráfico de Red**: En lugar de enviar múltiples sentencias SQL a través de la red, la aplicación solo 
-necesita enviar una llamada al procedimiento. Esto minimiza el tráfico entre el servidor de la aplicación y la base de 
-datos, lo que es especialmente beneficioso en entornos con alta latencia de red.
+- **Flexibilidad**: Facilita la adaptación de la aplicación a distintos entornos (desarrollo, pruebas, producción) 
+simplemente modificando las propiedades del archivo.
+
+```mermaid
+graph TD
+subgraph View
+TestConexion[TestConexion.java<br>Maneja la GUI y el evento del botón]
+end
+
+    subgraph Data
+        Conexion[Conexion.java<br>Establece y gestiona la conexión a la DB]
+    end
+
+    subgraph Utilities
+        Configuration[Configuration.java<br>Lee el archivo de propiedades]
+    end
+
+    subgraph Resources
+        ConexionBD.properties[conexionBD.properties<br>Almacena la URL, usuario y contraseña]
+    end
+
+    style View fill:#f9f,stroke:#333,stroke-width:2px
+    style Data fill:#ccf,stroke:#333,stroke-width:2px
+    style Utilities fill:#cfc,stroke:#333,stroke-width:2px
+    style Resources fill:#ffc,stroke:#333,stroke-width:2px
+
+    TestConexion -- Presiona el botón "Conectar a la BD" --> Conexion
+    Conexion -- "Solicita propiedades de conexión" --> Configuration
+    Configuration -- "Lee" --> ConexionBD.properties
+    Configuration -- "Devuelve los datos" --> Conexion
+    Conexion -- "Establece la conexión" --> PostgreSQL[Base de Datos PostgreSQL]
+    PostgreSQL -- "Responde con éxito o error" --> Conexion
+    Conexion -- "Retorna la conexión" --> TestConexion
+    TestConexion -- "Muestra el resultado en un JOptionPane" --> Usuario[(Usuario)]
+```
 
 En este proyecto, los métodos `listarPersonas()` y `insertarPersona()` en la clase `GestorPersonas` no contienen la lógica SQL 
 directamente. En su lugar, simplemente invocan los procedimientos almacenados de PostgreSQL. Esto mantiene tu código Java 
