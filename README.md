@@ -222,7 +222,7 @@ end
     style Utilities fill:#cfc,stroke:#333,stroke-width:2px
     style Resources fill:#ffc,stroke:#333,stroke-width:2px
 
-    TestConexion -- Presiona el botón "Conectar a la BD" --> Conexion
+    TestConexion -- "Presiona el botón 'Conectar a la BD'" --> Conexion
     Conexion -- "Solicita propiedades de conexión" --> Configuration
     Configuration -- "Lee" --> ConexionBD.properties
     Configuration -- "Devuelve los datos" --> Conexion
