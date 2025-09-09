@@ -21,7 +21,7 @@ public class Conexion {
     /** Constructor privado para implementar Singleton. */
     private Conexion() {
         try {
-            Class.forName("org.postgresql.Driver");
+            Class.forName(" ");
             logger.info("Driver PostgreSQL cargado exitosamente.");
         } catch (ClassNotFoundException e) {
             logger.error("No se pudo cargar el driver PostgreSQL. Asegúrate de que la dependencia esté en el classpath.", e);
